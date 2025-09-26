@@ -8,6 +8,8 @@ import cors from "cors";
 import router from "./app/routes";
 import globalErrorHandler from "./app/middlewares/globalErrorhandler";
 import notFound from "./app/middlewares/notFound";
+import { connectDB } from "./app/config/db";
+import config from "./app/config";
 
 const app: Application = express();
 const Pusher = require("pusher");
@@ -38,6 +40,18 @@ app.use(
     credentials: true,
   })
 );
+
+
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB(config.database_url); // ensures connection is ready
+    next();
+  } catch (err) {
+    console.error("DB connection failed:", err);
+    res.status(500).json({ success: false, message: "Database connection failed", error: err });
+  }
+}, router);
+
 
 // Test route
 app.get("/", async (req: Request, res: Response) => {
