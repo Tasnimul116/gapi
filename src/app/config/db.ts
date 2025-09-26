@@ -11,7 +11,10 @@ export async function connectDB(uri: string) {
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(uri)
+      .connect(uri, {
+        // Increase server selection timeout to 20 seconds
+        serverSelectionTimeoutMS: 20000,
+      })
       .then((mongoose) => mongoose)
       .catch((err) => {
         console.error("MongoDB connection error:", err);
