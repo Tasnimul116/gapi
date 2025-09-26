@@ -20,43 +20,49 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-pusher.trigger("my-channel", "my-event", {
-  message: "hello world",
-});
-//parsers
+// Parsers
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 
-
-
+// CORS
 app.use(
   cors({
     origin: [
       "*",
       "http://localhost:5173",
       "https://gramausbd.netlify.app",
-      "https://gramausbd.org"
-      
+      "https://gramausbd.org",
     ],
     credentials: true,
   })
 );
 
-
-// application routes
+// Application routes
 app.use("/api", router);
 
-const test = async (req: Request, res: Response) => {
+// Test route
+app.get("/", async (req: Request, res: Response) => {
   return res.json({ message: "working nicely" });
-};
+});
 
-app.get("/", test);
+// Example Pusher route
+app.post("/api/push", async (req: Request, res: Response) => {
+  const { message } = req.body;
+  try {
+    await pusher.trigger("my-channel", "my-event", { message });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Pusher error:", err);
+    res.status(500).json({ error: "Failed to trigger Pusher", details: err });
+  }
+});
 
+// Global error handler
 app.use(globalErrorHandler);
 
-//Not Found
+// Not Found
 app.use(notFound);
 
 export default app;
