@@ -2,12 +2,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import express, { Application, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { Application, Request, Response } from "express";
+import router from "./app/routes";
 import globalErrorHandler from "./app/middlewares/globalErrorhandler";
 import notFound from "./app/middlewares/notFound";
-import router from "./app/routes";
 
 const app: Application = express();
 const Pusher = require("pusher");
@@ -22,8 +22,8 @@ const pusher = new Pusher({
 
 // Parsers
 app.use(express.json());
-app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
 // CORS
@@ -39,9 +39,6 @@ app.use(
   })
 );
 
-// Application routes
-app.use("/api", router);
-
 // Test route
 app.get("/", async (req: Request, res: Response) => {
   return res.json({ message: "working nicely" });
@@ -55,14 +52,17 @@ app.post("/api/push", async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Pusher error:", err);
-    res.status(500).json({ error: "Failed to trigger Pusher", details: err });
+    res.status(500).json({ success: false, message: "Pusher trigger failed", error: err });
   }
 });
+
+// Application routes under /api
+app.use("/api", router);
 
 // Global error handler
 app.use(globalErrorHandler);
 
-// Not Found
+// Not Found handler
 app.use(notFound);
 
 export default app;
